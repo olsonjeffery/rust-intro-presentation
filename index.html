@@ -41,7 +41,7 @@
           <script type="text/template">
             ## The Rust Programming
             ## Language
-            #### a safe, concurrent, practical language
+            #### (a safe, concurrent, practical language)
 
             <img src="content/rust-logo.png" style="border:none;box-shadow:none;" height="256px"/>
   					<p>
@@ -56,74 +56,14 @@
           <h2>Agenda</h2>
           <br />
           <ol>
-            <li class="fragment">Front Matter</li>
-            <li class="fragment">The Rust Lexicon By Example
-            <li class="fragment">Crucial Semantics
-              <ol>
-                <li class="fragment">Type System</li>
-                <li class="fragment">Memory</li>
-                <li class="fragment">Runtime/Scheduler/IO</li>
-              </ol></li>
+            <li class="fragment">Show lots of code</li>
           </ol>
 				</section>
         <section>
-          <h2>Front Matter</h2>
-          <br />
-            <li class="fragment"><a href="http://github.com/mozilla/rust">mozilla/rust</a> on github</li>
-            <li class="fragment">220 entries in <a href="http://github.com/mozilla/rust/tree/master/AUTHORS.txt">AUTHORS.txt</a></li>
-            <li class="fragment"><a href="http://github.com/mozilla/rust/pulls">60-70 PRs</a> merged every week</li>
-            <li class="fragment">Issue tracker closing in on <a href="http://github.com/mozilla/rust/issues">#10000</a></li>
-            <li class="fragment">0.1 released in January, 2001</li>
-            <li class="fragment">1.0 by the end of 2013 (aspirational)</li>
-        </section>
-        <section>
-          <h4>Hello, world!</h4>
-          <pre>
-            <code>
-use std;
-use comm::oneshot;
-use std::task::spawn;
-
-fn main() {
-    let mut sammiches = ~[];
-    let (port, chan) = oneshot();
-    do spawn {
-        chan.send(make_sammich());
-    }
-    // parallel sammich production
-    sammiches.push(make_sammich());
-    sammiches.push(port.recv());
-    do sammiches.len().times {
-        sammiches.pop().eat();
-    }
-}
-            </code>
-          </pre>
-        </section>
-        <section>
-          <h2>Programming-In-The-Large</h2>
-          <br />
-            <p class="fragment">Modules</p>
-            <p class="fragment">Test framework/em>
-            <p class="fragment">Packaging System</p>
-            <aside class="notes">
-            </aside>
-        </section>
-        <section data-markdown>
-          <script type="text/template">
-            ## The Rust Lexicon By Example
-
-            - `struct`
-            - `enum`
-            - `match`
-            - `trait` & `impl`
-            - reference types galore! (`&`, `~`, `*` .. and `@`)
-            - lifetimes
-            - `fn`'s and closures
-          </script>
+          <h2>Go on, show some code</h2>
         </section>
 				<section>
-					<h1>Questions?</h1>
+					<h1>Thank You</h1>
           <br />
           <br />
           <br />
@@ -131,9 +71,7 @@ fn main() {
   						<small><a href="http://olsonjeffery.github.io">Jeff Olson</a> | <a href-"#">http://olsonjeffery.github.io</a> | <a href="http://twitter.com/olsonjeffery">@olsonjeffery</a></small>
           </p>
 				</section>
-
 			</div>
-
 		</div>
 
 		<script src="lib/js/head.min.js"></script>
