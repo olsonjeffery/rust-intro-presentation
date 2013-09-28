@@ -60,6 +60,7 @@
             <li class="fragment">Practical</li>
           </ul>
         </section>
+        <section><h3>Some trivia</h3></section>
         <section>
         <h3>Modelling Data</h3>
         <pre><code>
@@ -98,9 +99,12 @@ match app_status {
 }
             </code></pre>
         </section>
+<section>
+  <h3>structs: C-compatible memory layout</h3>
+  </section>
         <section data-markdown>
         <script type="text/template">
-<h3>structs: Pretty much like in C</h3>
+<h3>traits: static/dynamic dispatch</h3>
 ~~~
 struct Foo {
     baz: int
@@ -130,21 +134,268 @@ fn main() {
 ~~~
         </script>
         </section>
-        <section>
-          <h1>Safe</h1>
-            <img src="content/rust-logo.png" style="border:none;box-shadow:none;" height="256px"/>
-        </section>
-        <section>
-          <h1>Concurrent</h1>
-            <img src="content/rust-logo.png" style="border:none;box-shadow:none;" height="256px"/>
-        </section>
-        <section>
-          <h1>Practical</h1>
-            <img src="content/rust-logo.png" style="border:none;box-shadow:none;" height="256px"/>
-        </section>
+        <section data-markdown>
+        <script type="text/template">
+<h3>traits: static/dynamic dispatch</h3>
+~~~
+fn main() {
+    let one = Foo { baz: 1 };
+    let forty_two = Bar { froboz: 42 };
+    let list = [&one as &Contrived, &forty_two as &Contrived];
+    for x in list {
+        // dynamic dispatch
+        println!("oooooh nooooo! {}", x.gimme());
+    }
+}
+~~~
+</script></section>
+        <section data-markdown>
+        <script type="text/template">
+<h3>Memory</h3>
+~~~
+let foo = Bar::new();  // lives on the stack
+let foo = &foo;        // reference to a value on the stack
+let foo = ~Bar::new(); // lives on exchange heap
+let foo = @Bar::new(); // lives in per-task heap (currently)
+~~~
+</script></section>
+        <section data-markdown>
+        <script type="text/template">
+<h3>Memory (arrays of data)</h3>
+~~~
+let data = ~[1, 2, 3];          // fixed-size, allocated on the heap
+let mut data = ~[];             // dynamic-size, lives on the heap
+                                // aka "the growable vec"
+data.push(1);
+// ...
+data.push(n);
+let data = [1, 2, 3];           // fixed-size, on the stack
+let mut data = [0u8, .. 65792]; // fixed-size, on the stack
+let ptr = &data;
+unsafe {
+    some_c_library_call(ptr);   // transmutes to *u8
+                                // C-compatible w/ char*
+}
+~~~
+</script></section>
+        <section data-markdown>
+        <script type="text/template">
+          <h3>Quick aside on mutability</h3>
+~~~
+struct Blah {
+    priv good_to_go: bool,
+    could_be: int
+}
+impl Blah {
+    fn new() -> Blah {
+        Blah {
+            good_to_go: true,
+            could_be: 1
+        }
+    }
+}
+let mut whatevs = Blah::new();
+whatevs.could_be = 134346;  // we'll tolerate this
+whatevs.good_to_go = false; // NOPE
+~~~
+</script></section>
+        <section data-markdown>
+        <script type="text/template">
+<h3>Ownership</h3>
+~~~
+struct Bar {
+    state: int
+}
+impl Drop for Bar {
+    fn drop(&mut self) {
+        // cleanup happens here..
+    }
+}
+fn foo(input: Bar) {
+    println!("How you doin? {}", in.state);
+    // input is free'd after this
+}
+fn main() {
+    let bar: Bar = some_constructor_fn();
+    foo(bar); // bar has been "moved" into foo()'s scope
+    if bar.state == 0 { // BZZT! WRONG! compiler error
+        // ...
+    }
+}
+~~~
+</script></section>
+<section data-markdown><script type="text/template">
+<h3>Ownership, again</h3>
+~~~
+fn foo(input: &Bar) { // we get a reference, instead
+    in.state += 1; // nope. can't mutate this.
+    println!("How you doin? {}", in.state);
+}
+fn main() {
+    let bar: Bar = some_constructor_fn();
+    foo(bar); // bar has been "moved" into foo()'s scope
+    if bar.state == 0 { // we're allowed to do this, now
+        // ...
+    }
+}
+~~~
+</script></section>
+<section data-markdown><script type="text/template">
+<h3>Ownership, one more time</h3>
+~~~
+fn foo(input: &mut Bar) { // we get a reference, instead
+    in.state += 1; // ok. now we can do it.
+    println!("Hit me {} more time", in.state);
+}
+fn main() {
+    let bar = Bar(0);
+    foo(bar); // bar has been "moved" into foo()'s scope
+    if bar.state == 1 { // will be true
+        // ...
+    }
+}
+~~~
+</script></section>
+<section data-markdown><script type="text/template">
+<h3>Lifetimes</h3>
+~~~
+fn foo(input: &'a int) { // 'a is the lifetime of the caller
+    // lifetime c
+}
+fn main() {
+    // lifetime a
+    let some_val = 1;
+    let bar = &some_val // has a lifetime delimited by this
+    if true {
+        // lifetime b
+        foo(bar);
+    }
+}
+~~~
+</script></section>
+<section data-markdown><script type="text/template">
+<h3>Tasks</h3>
+~~~
+use task::spawn;
+use comm::oneshot;
+
+fn main() {
+    let (port, chan) = oneshot();
+    do spawn {
+        chan.send(bool);
+    }
+    let v = port.recv();
+}
+~~~
+</script></section>
+<section data-markdown><script type="text/template">
+<h3>Schedulers</h3>
+~~~
+use task::spawn_sched;
+use comm::{stream, SharedChan};
+
+fn main() {
+    let mut sammiches = ~[];
+    let (port, chan) = stream();
+    let chan = SharedChan::new(chan);
+    do 5.times {
+        do spawn_sched {
+            chan.send(parallel_sandwich_production());
+        }
+    }
+    do 5.times {
+        sammiches.push(port.recv());
+    }
+}
+~~~
+</script></section>
+<section data-markdown><script type="text/template">
+<h3>I/O</h3>
+~~~
+use std::rt::io::file::{FileInfo, FileStream};
+use std::path::Path;
+use std::rt::io::support::PathLike;
+use std::rt::io::{FileMode, FileAccess};
+
+fn main() {
+    let foo = Path("/some/file/path.txt");
+    let stream = foo.open_stream(Create, ReadWrite);
+    let mut buf = [0u8, 65792];
+    stream.read(buf);
+}
+~~~
+</script></section>
+<section data-markdown><script type="text/template">
+<h3>Programming In The Large</h3>
+</script></section>
+<section data-markdown><script type="text/template">
+<h3>Test framework</h3>
+
+~~~
+#[test]
+fn some_test_for_whatever() {
+    assert!(true);
+}
+fn another_one() {
+    assert!(false);
+}
+~~~
+
+~~~
+> rustc --test some_code.rs
+> ./some_code another
+~~~
+</script></section>
+<section data-markdown><script type="text/template">
+<h3>Modules</h3>
+
+~~~
+./main.rs
+./some_mod.rs
+./another_mod/mod.rs
+./another_mod/more.rs
+~~~
+
+~~~
+use some_mod;
+use another_mod::more;
+extern mod some_linked_library
+
+mod some_mod;
+mod another_mod;
+mod locally_nested {
+    fn magic() {}
+}
+
+fn main() {
+    some_mod::magic();
+    another_mod::more::magic();
+    locally_nested::magic();
+}
+~~~
+
+~~~
+> rustc main.rs # might need more info to link properly, of course
+~~~
+</script></section>
+<section>
+<h3>The Rust Community</h3>
+
+<p>
+  @rustlang
+  </p>
+<p>
+<a href="https://mail.mozilla.org/listinfo/rust-dev">https://mail.mozilla.org/listinfo/rust-dev</a>
+</p>
+<p>
+<a href="http://reddit.com/r/rust">http://reddit.com/r/rust</a>
+</p>
+<p>#rust on irc.mozilla.org</p>
+
+</section>
 				<section>
 					<h1>Thank You</h1>
-          <br />
+            <img src="content/rust-logo.png" style="border:none;box-shadow:none;" height="256px"/>
           <br />
           <br />
           <p>

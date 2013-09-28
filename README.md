@@ -35,10 +35,12 @@ All code for this presentation is in the [`/src` directory](http://github.com/ol
 
   - A rich typesystem
   - Rust has C-compatible struct layouts!
+  - Reasoning about memory layout
+    - Stack, heap, dynamic memory pools, etc
   - Rust features several categories of types more commonly found in functional languages
-  - algebraic datatypes (enums or tagged unions)
-  - tuples
-  - traits (typeclasses in haskell). Rust has generics!
+    - algebraic datatypes (enums or tagged unions)
+    - tuples
+    - traits (typeclasses in haskell). Rust has generics!
   - Nothing particularly innovative about the language. Most features follow existing academic work/features.
   - Like C/C++, can reason about semantics of memory layout in a reasonably transparent fashion. He who controls memory layout controls the universe.
 
@@ -68,28 +70,90 @@ in a match
   
 # Traits: static/dynamic dispatch scenarios
 
-### OLD
+- explain code example
+- uses of `input` in `good_times` are statically dispatched
+- show example of dynamic dispatch
 
+# Memory
 
-# Safe, concurrent, practical
-- `/src/practical/hello.rs`
+- pretty self-explanatory, in terms of allocation
+- mention variable shadowing
+- Unique boxes must satisfy the `Send` trait:
+  - No references
+  - No managed boxes
+  - They have a "linear" lifetime that is known to the compiler
+- Managed boxes are task-local. The box can be cheaply copied.
+- Current scheme of reference-counting w/ cycle-collection.. worst case: memory is freed at the end of the tasks
+- Real GC is coming
+- Managed pointers will probably become a library type
 
-## Safe
+# Memory (arrays of data)
 
-* Won't slash your tires
-* Won't kick your door in
-* (Hopefully) No segfaults, wild pointers, data races, etc
+- This is a vector, the rust-idiomatic means of representing contiguous, homogeneous data
+- Different allocation scenarios dictate its layout
+- "growable vecs" double in size as they grow
 
-## Pratical
+# Quick aside on mutability
 
-* *Good FFI*
-  - to include C-compatible struct layouts
-  - uvll.rs
-* Reasoning about memory layout
-  - Stack, heap, dynamic memory pools, etc
+- Worth noting is that rust makes mutability an explicit choice on the part of the programmer. all values are immutable by default. Mutability is specified at time of storage and is inherited.
+- If you return a value and absolutely want to make some part of its data immutable, use private fields
 
-`/code/src/dip/two.rs`
+# Ownership
 
-## Concurrent
+- What is ownership?
+- The right to free memory
+- note that parens are option in if, et al statements
+- brackets are never optional
+- In this example, ownership of `bar` has been "moved" into `foo()`
 
-* Easy to reason about memory and concurrency
+# Ownership, again
+
+- Here, foo gets a reference to `bar` and doesn't "own" it
+
+# Lifetimes
+
+- Lifetimes are a very complex topic, worthy of their own, standalone presentation
+- Here is a visualization of lifetimes, as viewed by
+the compiler
+- They allow getting references to some value in a data structure and returning it to a caller, *provided* the compiler can verify that the "borrowed-reference" doesn't outlive the lifetime of the value being borrowed-from.
+
+# Tasks
+
+- Tasks are the rust unit of execution
+- The scheduler does not pre-empt running tasks
+- Tasks yield in certain scenarios, like entering IO or messaging
+
+# Schedulers
+
+- Schedulers map 1:1 with an OS Thread
+- N tasks are multiplexed onto the Scheduler
+- Schedulers can steal work from other Schedulers if they have nothing to do
+- IO is an exception to this rule (at least under libuv)
+
+# IO
+
+- The current scheduler and IO is implemented atop libuv, the backing IO layer for node.js
+- The user-facing IO API is presented as being blocking
+- But it is async under the hood
+
+# Programming In The Large
+
+- Software programming, at it's core, is about solving discrete problems using the tools at hand.
+- Some tools are better suited to tasks at different scale.
+- Think about the differences between shell-script and a ruby-on-rails project
+- Programming-in-the-large speaks to this. It's about working on projects of a larger scale, usually consisting of tens, hundreds or thousands of individual components and tasks, with possibly several teams working on a shared codebase independant of each other.
+- Rust endevours to provide tooling to support this
+
+# Test framework
+
+- rust provides tools to embed tests alongside your code or in other modules
+- code compiled with the "test" flag will always output an executable, which when ran will execute available tests
+
+# Modules
+
+- Rust has a modern, sophisticated module system
+- Here we have an example of several modules within a single project
+- Based on the structure, you can that modules can be nested within folders or placed alongside each other
+- "use" statements make code in other modules available within the current module
+- "mod" statements provide links to modules
+- "extern mod" refers to an externally linked module
