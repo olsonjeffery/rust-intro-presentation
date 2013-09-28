@@ -48,10 +48,88 @@
   						<small><a href="http://olsonjeffery.github.io">Jeff Olson</a> | <a href-"#">http://olsonjeffery.github.io</a> | <a href="http://twitter.com/olsonjeffery">@olsonjeffery</a></small>
   					</p>
   					<p>
-  						<small><a href="http://github.com/olsonjeffery/rust-intro-presentation">olsonjeffery/rust-intro-presentation</a></small>
+  						<small><a href="http://github.com/olsonjeffery/rust-intro-presentation">olsonjeffery/rust-intro-presentation</a><br /><a href="http://olsonjeffery.github.io/rust-intro-presentation">http://olsonjeffery.github.io/rust-intro-presentation</a></small>
   					</p>
           </script>
 				</section>
+        <section>
+          <h3>Why Rust?</h3>
+          <ul>
+            <li class="fragment">Safe</li>
+            <li class="fragment">Concurrent</li>
+            <li class="fragment">Practical</li>
+          </ul>
+        </section>
+        <section>
+        <h3>Modelling Data</h3>
+        <pre><code>
+enum Nation {
+    Austria,
+    England,
+    France,
+    Germany,
+    Italy,
+    Russia,
+    Turkey
+}
+            </code></pre>
+        </section>
+        <section>
+        <h3>Modelling Data</h3>
+        <pre><code>
+enum ApplicationStatus {
+    NotBegan,
+    Pending(~ApplicationData),
+    Approved(uint),
+    Rejected(RejectionReason)
+}
+            </code></pre>
+        </section>
+        <section>
+        <h3>Modelling Data</h3>
+        <pre><code>
+match app_status {
+    Pending(input) => process(input),
+    Rejected(reason) => notify_of_rejection(reason),
+    Approved(id) => {
+        let user = get_user(id)
+    },
+    _ => {}
+}
+            </code></pre>
+        </section>
+        <section data-markdown>
+        <script type="text/template">
+<h3>structs: Pretty much like in C</h3>
+~~~
+struct Foo {
+    baz: int
+}
+struct Bar {
+    froboz: int
+}
+trait Contrived {
+    fn gimme(&self) -> int;
+}
+impl Contrived for Foo {
+    fn gimme(&self) -> int { self.baz }
+}
+impl Contrived for Bar {
+    fn gimme(&self) -> int { self.froboz }
+}
+fn good_times<T: Contrived>(input: &T) {
+    printn!("oohhhhhh yeeaah {}", input.gimme());
+}
+fn main() {
+    let one = Foo { baz: 1 };
+    let forty_two = Bar { froboz: 42 };
+    // static dispatch
+    good_times(one);
+    good_times(forty_two);
+}
+~~~
+        </script>
+        </section>
         <section>
           <h1>Safe</h1>
             <img src="content/rust-logo.png" style="border:none;box-shadow:none;" height="256px"/>
